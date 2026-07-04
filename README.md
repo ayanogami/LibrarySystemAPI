@@ -22,6 +22,8 @@ sdk env install
 sdk env
 ```
 
+DB の username / password は環境変数で渡します。GitHub Actions では `CI_DB_USERNAME` / `CI_DB_PASSWORD` を Secrets に設定します。
+
 ### 技術要件
 
 - Kotlin
