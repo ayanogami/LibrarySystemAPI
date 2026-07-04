@@ -3,15 +3,23 @@ package com.ayanogami.library.system.api.author
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import java.time.LocalDate
 
 class AuthorServiceSpec : DescribeSpec({
 	describe("著者作成") {
 		context("リクエストが妥当な場合") {
 			it("作成された著者を返す") {
-				val repository = RecordingAuthorRepository()
+				val repository = mockk<AuthorRepository>()
 				val service = AuthorService(repository)
 				val birthDate = LocalDate.of(1867, 2, 9)
+				every { repository.create("夏目漱石", birthDate) } returns Author(
+					id = 1,
+					name = "夏目漱石",
+					birthDate = birthDate,
+				)
 
 				val author = service.create("夏目漱石", birthDate)
 
@@ -20,27 +28,31 @@ class AuthorServiceSpec : DescribeSpec({
 					name = "夏目漱石",
 					birthDate = birthDate,
 				)
-				repository.createdName shouldBe "夏目漱石"
-				repository.createdBirthDate shouldBe birthDate
+				verify(exactly = 1) { repository.create("夏目漱石", birthDate) }
 			}
 		}
 
 		context("生年月日が現在日の場合") {
 			it("作成された著者を返す") {
-				val repository = RecordingAuthorRepository()
+				val repository = mockk<AuthorRepository>()
 				val service = AuthorService(repository)
 				val today = LocalDate.now()
+				every { repository.create("今日 生まれ", today) } returns Author(
+					id = 1,
+					name = "今日 生まれ",
+					birthDate = today,
+				)
 
 				val author = service.create("今日 生まれ", today)
 
 				author.birthDate shouldBe today
-				repository.createdBirthDate shouldBe today
+				verify(exactly = 1) { repository.create("今日 生まれ", today) }
 			}
 		}
 
 		context("著者名が空白の場合") {
 			it("InvalidAuthorException を投げる") {
-				val repository = RecordingAuthorRepository()
+				val repository = mockk<AuthorRepository>()
 				val service = AuthorService(repository)
 
 				val exception = shouldThrow<InvalidAuthorException> {
@@ -48,13 +60,13 @@ class AuthorServiceSpec : DescribeSpec({
 				}
 
 				exception.message shouldBe "name is required"
-				repository.called shouldBe false
+				verify(exactly = 0) { repository.create(any(), any()) }
 			}
 		}
 
 		context("生年月日が現在日より後の場合") {
 			it("InvalidAuthorException を投げる") {
-				val repository = RecordingAuthorRepository()
+				val repository = mockk<AuthorRepository>()
 				val service = AuthorService(repository)
 				val tomorrow = LocalDate.now().plusDays(1)
 
@@ -63,26 +75,8 @@ class AuthorServiceSpec : DescribeSpec({
 				}
 
 				exception.message shouldBe "birthDate must be today or earlier"
-				repository.called shouldBe false
+				verify(exactly = 0) { repository.create(any(), any()) }
 			}
 		}
 	}
 })
-
-private class RecordingAuthorRepository : AuthorRepository {
-	var called = false
-	var createdName: String? = null
-	var createdBirthDate: LocalDate? = null
-
-	override fun create(name: String, birthDate: LocalDate): Author {
-		called = true
-		createdName = name
-		createdBirthDate = birthDate
-
-		return Author(
-			id = 1,
-			name = name,
-			birthDate = birthDate,
-		)
-	}
-}

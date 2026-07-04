@@ -11,6 +11,7 @@ version = '0.0.1-SNAPSHOT'
 
 def kotestVersion = '6.2.0'
 def jooqVersion = '3.21.5'
+def mockkVersion = '1.14.11'
 
 java {
 	toolchain {
@@ -38,6 +39,7 @@ dependencies {
 	testImplementation "io.kotest:kotest-runner-junit5:$kotestVersion"
 	testImplementation "io.kotest:kotest-assertions-core:$kotestVersion"
 	testImplementation "io.kotest:kotest-extensions-spring:$kotestVersion"
+	testImplementation "io.mockk:mockk:$mockkVersion"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
