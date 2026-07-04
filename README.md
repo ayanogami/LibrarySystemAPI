@@ -9,6 +9,11 @@
 
 ## Requirements
 
+### 実行環境
+
+- JDK 21
+- Docker
+
 ### 技術要件
 
 - Kotlin
