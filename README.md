@@ -1,4 +1,4 @@
-# LibrarySystem
+# LibrarySystemAPI
 書籍管理システムのバックエンドAPI
 
 ## Overview
@@ -6,10 +6,6 @@
 このリポジトリは、書籍管理システムのバックエンド API を実装するためのものです。
 
 フロントエンドは含めず、書籍と著者を管理する REST API を提供します。
-
-## Application
-
-Spring Boot application is located in `api/`.
 
 ## Requirements
 
