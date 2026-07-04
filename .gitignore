@@ -59,4 +59,6 @@ application-local.properties
 # Keep personal configuration, caches, and histories out of version control.
 .*
 !.gitignore
+!.sdkmanrc
 !.github/
+!.github/**

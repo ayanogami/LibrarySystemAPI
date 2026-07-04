@@ -13,6 +13,16 @@
 
 - JDK 21
 - Docker
+- SDKMAN
+
+JDK は SDKMAN で管理します。
+
+```bash
+sdk env install
+sdk env
+```
+
+DB の username / password は環境変数で渡します。GitHub Actions では `CI_DB_USERNAME` / `CI_DB_PASSWORD` を Secrets に設定します。
 
 ### 技術要件
 
@@ -21,6 +31,13 @@
 - jOOQ
 - RDB
 - 単体テスト
+
+### データベース構築・アクセス方針
+
+- Flyway を使用して RDB のスキーマを構築・更新する
+- Flyway の migration SQL をもとにテーブルを作成する
+- jOOQ を使用して RDB のスキーマからコードを自動生成する
+- アプリケーションでは jOOQ の生成コードを利用して DB にアクセスする
 
 ### 機能要件
 
