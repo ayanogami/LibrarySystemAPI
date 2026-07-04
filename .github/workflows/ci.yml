@@ -17,6 +17,23 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SDKMAN_DIR: ${{ github.workspace }}/.sdkman
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: mydatabase
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U myuser -d mydatabase"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
