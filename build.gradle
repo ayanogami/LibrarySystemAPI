@@ -3,12 +3,14 @@ plugins {
 	id 'org.jetbrains.kotlin.plugin.spring' version '2.3.21'
 	id 'org.springframework.boot' version '4.1.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.jooq.jooq-codegen-gradle' version '3.21.5'
 }
 
 group = 'com.ayanogami.library.system'
 version = '0.0.1-SNAPSHOT'
 
 def kotestVersion = '6.2.0'
+def jooqVersion = '3.21.5'
 
 java {
 	toolchain {
@@ -29,6 +31,7 @@ dependencies {
 	implementation 'tools.jackson.module:jackson-module-kotlin'
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 	runtimeOnly 'org.postgresql:postgresql'
+	jooqCodegen "org.jooq:jooq-meta-extensions:$jooqVersion"
 	testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-jooq-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -44,6 +47,50 @@ kotlin {
 	}
 }
 
+jooq {
+	configuration {
+		generator {
+			database {
+				name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
+				properties {
+					property {
+						key = 'scripts'
+						value = 'src/main/resources/db/migration/*.sql'
+					}
+					property {
+						key = 'sort'
+						value = 'flyway'
+					}
+					property {
+						key = 'defaultNameCase'
+						value = 'lower'
+					}
+				}
+			}
+			target {
+				packageName = 'com.ayanogami.library.system.api.jooq.generated'
+				directory = 'build/generated-sources/jooq'
+			}
+		}
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'build/generated-sources/jooq'
+		}
+	}
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('compileKotlin') {
+	dependsOn tasks.named('jooqCodegen')
+}
+
+tasks.named('compileJava') {
+	dependsOn tasks.named('jooqCodegen')
 }

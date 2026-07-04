@@ -24,6 +24,32 @@ sdk env
 
 DB の username / password は環境変数で渡します。GitHub Actions では `CI_DB_USERNAME` / `CI_DB_PASSWORD` を Secrets に設定します。
 
+### ローカル起動手順
+
+ローカルでは Docker で PostgreSQL を起動し、同じ username / password を Spring Boot に環境変数で渡します。
+
+Docker Desktop を起動したうえで、以下を実行します。
+
+```bash
+POSTGRES_USER=library_system \
+POSTGRES_PASSWORD=library_system \
+docker-compose up -d postgres
+```
+
+```bash
+SPRING_DATASOURCE_USERNAME=library_system \
+SPRING_DATASOURCE_PASSWORD=library_system \
+./gradlew bootRun
+```
+
+テストも同じ DB 接続情報で実行できます。
+
+```bash
+SPRING_DATASOURCE_USERNAME=library_system \
+SPRING_DATASOURCE_PASSWORD=library_system \
+./gradlew test
+```
+
 ### 技術要件
 
 - Kotlin
