@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("/authors")
@@ -16,7 +17,7 @@ class AuthorController(
 	private val authorService: AuthorService,
 ) {
 	@PostMapping
-	fun create(@RequestBody request: CreateAuthorRequest): ResponseEntity<AuthorResponse> {
+	fun create(@Valid @RequestBody request: CreateAuthorRequest): ResponseEntity<AuthorResponse> {
 		val author = authorService.create(request.name, request.birthDate)
 
 		return ResponseEntity

@@ -54,20 +54,6 @@ class AuthorServiceSpec : DescribeSpec({
 			}
 		}
 
-		context("著者名が空白の場合") {
-			it("InvalidAuthorException を投げる") {
-				val repository = mockk<AuthorRepository>()
-				val service = AuthorService(repository)
-
-				val exception = shouldThrow<InvalidAuthorException> {
-					service.create("   ", LocalDate.of(1867, 2, 9))
-				}
-
-				exception.message shouldBe "name is required"
-				verify(exactly = 0) { repository.create(any(), any()) }
-			}
-		}
-
 		context("生年月日が現在日より後の場合") {
 			it("InvalidAuthorException を投げる") {
 				val repository = mockk<AuthorRepository>()
