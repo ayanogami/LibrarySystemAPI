@@ -1,5 +1,8 @@
-package com.ayanogami.library.system.api.author
+package com.ayanogami.library.system.api.author.service
 
+import com.ayanogami.library.system.api.author.exception.InvalidAuthorException
+import com.ayanogami.library.system.api.author.model.Author
+import com.ayanogami.library.system.api.author.repository.AuthorRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -19,9 +22,3 @@ class AuthorService(
 		return authorRepository.create(name, birthDate)
 	}
 }
-
-data class Author(
-	val id: Long,
-	val name: String,
-	val birthDate: LocalDate,
-)

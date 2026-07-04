@@ -1,5 +1,6 @@
-package com.ayanogami.library.system.api.author
+package com.ayanogami.library.system.api.author.repository
 
+import com.ayanogami.library.system.api.author.model.Author
 import com.ayanogami.library.system.api.jooq.generated.Tables.AUTHORS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
@@ -24,8 +25,4 @@ class JooqAuthorRepository(
 			birthDate = record.get(AUTHORS.BIRTH_DATE)!!,
 		)
 	}
-}
-
-interface AuthorRepository {
-	fun create(name: String, birthDate: LocalDate): Author
 }
