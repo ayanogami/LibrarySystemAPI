@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-class JooqAuthorRepository(
+class AuthorRepositoryImpl(
 	private val dsl: DSLContext,
 ) : AuthorRepository {
 	override fun create(name: String, birthDate: LocalDate): Author {
