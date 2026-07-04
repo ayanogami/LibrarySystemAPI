@@ -1,12 +1,13 @@
 @baseUrl = http://localhost:8080
+@authorId = 1
 
 ### Create author
 POST {{baseUrl}}/authors
 Content-Type: application/json
 
 {
-  "name": "夏目漱石",
-  "birthDate": "1867-02-09"
+  "name": "森鴎外",
+  "birthDate": "1821-01-01"
 }
 
 ### Create author fails when name is blank
@@ -25,4 +26,50 @@ Content-Type: application/json
 {
   "name": "未来 太郎",
   "birthDate": "2999-01-01"
+}
+
+### Update author name
+PATCH {{baseUrl}}/authors/{{authorId}}
+Content-Type: application/json
+
+{
+  "name": "森 林太郎"
+}
+
+### Update author birth date
+PATCH {{baseUrl}}/authors/{{authorId}}
+Content-Type: application/json
+
+{
+  "birthDate": "1862-02-17"
+}
+
+### Update author fails when body is empty
+PATCH {{baseUrl}}/authors/{{authorId}}
+Content-Type: application/json
+
+{}
+
+### Update author fails when name is blank
+PATCH {{baseUrl}}/authors/{{authorId}}
+Content-Type: application/json
+
+{
+  "name": "   "
+}
+
+### Update author fails when birth date is future
+PATCH {{baseUrl}}/authors/{{authorId}}
+Content-Type: application/json
+
+{
+  "birthDate": "2999-01-01"
+}
+
+### Update author fails when author does not exist
+PATCH {{baseUrl}}/authors/999999
+Content-Type: application/json
+
+{
+  "name": "存在しない著者"
 }
