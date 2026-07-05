@@ -29,16 +29,6 @@ Content-Type: application/json
   "authorIds": [86, 87, 88]
 }
 
-### Update book with cURL
-curl -X PATCH "{{baseUrl}}/books/{{bookId}}" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"坊っちゃん"}'
-
-### Update book authors with cURL
-curl -X PATCH "{{baseUrl}}/books/{{bookId}}" \
-  -H "Content-Type: application/json" \
-  -d '{"authorIds":[86,87,88]}'
-
 ### Create book fails when price is negative
 POST {{baseUrl}}/books
 Content-Type: application/json
