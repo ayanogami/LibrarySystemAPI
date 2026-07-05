@@ -1,0 +1,45 @@
+@baseUrl = http://localhost:8080
+
+### Create book
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "title": "吾輩は猫である",
+  "price": 1200,
+  "authorIds": [56],
+  "publicationStatus": "PUBLISHED"
+}
+
+### Create book fails when price is negative
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "title": "吾輩は猫である",
+  "price": -1,
+  "authorIds": [56],
+  "publicationStatus": "PUBLISHED"
+}
+
+### Create book fails when authorIds is empty
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "title": "吾輩は猫である",
+  "price": 1200,
+  "authorIds": [],
+  "publicationStatus": "PUBLISHED"
+}
+
+### Create book fails when author does not exist
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "title": "吾輩は猫である",
+  "price": 1200,
+  "authorIds": [999999],
+  "publicationStatus": "PUBLISHED"
+}
