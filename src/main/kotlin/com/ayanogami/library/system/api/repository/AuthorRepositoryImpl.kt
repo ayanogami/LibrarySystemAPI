@@ -21,9 +21,9 @@ class AuthorRepositoryImpl(
 			?: error("Failed to create author")
 
 		return Author(
-			id = record.get(AUTHORS.ID)!!,
-			name = record.get(AUTHORS.NAME)!!,
-			birthDate = record.get(AUTHORS.BIRTH_DATE)!!,
+			id = requireRecordValue(record.get(AUTHORS.ID), "author id"),
+			name = requireRecordValue(record.get(AUTHORS.NAME), "author name"),
+			birthDate = requireRecordValue(record.get(AUTHORS.BIRTH_DATE), "author birth date"),
 		)
 	}
 
@@ -36,9 +36,9 @@ class AuthorRepositoryImpl(
 			?: return null
 
 		return Author(
-			id = record.get(AUTHORS.ID)!!,
-			name = record.get(AUTHORS.NAME)!!,
-			birthDate = record.get(AUTHORS.BIRTH_DATE)!!,
+			id = requireRecordValue(record.get(AUTHORS.ID), "author id"),
+			name = requireRecordValue(record.get(AUTHORS.NAME), "author name"),
+			birthDate = requireRecordValue(record.get(AUTHORS.BIRTH_DATE), "author birth date"),
 		)
 	}
 
@@ -54,9 +54,9 @@ class AuthorRepositoryImpl(
 			?: return null
 
 		return Author(
-			id = record.get(AUTHORS.ID)!!,
-			name = record.get(AUTHORS.NAME)!!,
-			birthDate = record.get(AUTHORS.BIRTH_DATE)!!,
+			id = requireRecordValue(record.get(AUTHORS.ID), "author id"),
+			name = requireRecordValue(record.get(AUTHORS.NAME), "author name"),
+			birthDate = requireRecordValue(record.get(AUTHORS.BIRTH_DATE), "author birth date"),
 		)
 	}
 }

@@ -1,4 +1,5 @@
 @baseUrl = http://localhost:8080
+@bookId = 3
 
 ### Create book
 POST {{baseUrl}}/books
@@ -7,8 +8,25 @@ Content-Type: application/json
 {
   "title": "吾輩は猫である",
   "price": 1200,
-  "authorIds": [56],
+  "authorIds": [1],
   "publicationStatus": "PUBLISHED"
+}
+
+### Update book authors
+PATCH {{baseUrl}}/books/{{bookId}}
+Content-Type: application/json
+
+{
+  "authorIds": [2]
+}
+
+### Update book price and authors
+PATCH {{baseUrl}}/books/{{bookId}}
+Content-Type: application/json
+
+{
+  "price": 1500,
+  "authorIds": [86, 87, 88]
 }
 
 ### Create book fails when price is negative

@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:8080
-@authorId = 1
+@authorId = 56
 
 ### Create author
 POST {{baseUrl}}/authors
