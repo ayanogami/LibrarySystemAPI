@@ -1,6 +1,8 @@
 package com.ayanogami.library.system.api
 
 import com.ayanogami.library.system.api.jooq.generated.Tables.AUTHORS
+import com.ayanogami.library.system.api.jooq.generated.Tables.BOOKS
+import com.ayanogami.library.system.api.jooq.generated.Tables.BOOK_AUTHORS
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
@@ -31,6 +33,8 @@ class AuthorApiSpec : DescribeSpec({
 	}
 
 	beforeTest {
+		dsl.deleteFrom(BOOK_AUTHORS).execute()
+		dsl.deleteFrom(BOOKS).execute()
 		dsl.deleteFrom(AUTHORS).execute()
 	}
 

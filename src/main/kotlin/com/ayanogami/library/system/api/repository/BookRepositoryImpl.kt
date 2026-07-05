@@ -8,6 +8,7 @@ import com.ayanogami.library.system.api.jooq.generated.Tables.BOOKS
 import com.ayanogami.library.system.api.jooq.generated.Tables.BOOK_AUTHORS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 class BookRepositoryImpl(
@@ -30,6 +31,23 @@ class BookRepositoryImpl(
 					birthDate = record.get(AUTHORS.BIRTH_DATE)!!,
 				)
 			}
+	}
+
+	override fun findById(id: Long): Book? {
+		val bookRecord = dsl
+			.select(BOOKS.ID, BOOKS.TITLE, BOOKS.PRICE, BOOKS.PUBLICATION_STATUS)
+			.from(BOOKS)
+			.where(BOOKS.ID.eq(id))
+			.fetchOne()
+			?: return null
+
+		return Book(
+			id = bookRecord.get(BOOKS.ID)!!,
+			title = bookRecord.get(BOOKS.TITLE)!!,
+			price = bookRecord.get(BOOKS.PRICE)!!,
+			publicationStatus = PublicationStatus.valueOf(bookRecord.get(BOOKS.PUBLICATION_STATUS)!!),
+			authors = findAuthorsByBookId(id),
+		)
 	}
 
 	override fun create(
@@ -65,4 +83,59 @@ class BookRepositoryImpl(
 			authors = authors,
 		)
 	}
+
+	override fun update(
+		id: Long,
+		title: String,
+		price: Int,
+		publicationStatus: PublicationStatus,
+		authors: List<Author>,
+	): Book? {
+		val bookRecord = dsl
+			.update(BOOKS)
+			.set(BOOKS.TITLE, title)
+			.set(BOOKS.PRICE, price)
+			.set(BOOKS.PUBLICATION_STATUS, publicationStatus.name)
+			.set(BOOKS.UPDATED_AT, LocalDateTime.now())
+			.where(BOOKS.ID.eq(id))
+			.returning(BOOKS.ID, BOOKS.TITLE, BOOKS.PRICE, BOOKS.PUBLICATION_STATUS)
+			.fetchOne()
+			?: return null
+
+		dsl.deleteFrom(BOOK_AUTHORS)
+			.where(BOOK_AUTHORS.BOOK_ID.eq(id))
+			.execute()
+
+		authors.forEach { author ->
+			dsl
+				.insertInto(BOOK_AUTHORS)
+				.set(BOOK_AUTHORS.BOOK_ID, id)
+				.set(BOOK_AUTHORS.AUTHOR_ID, author.id)
+				.execute()
+		}
+
+		return Book(
+			id = bookRecord.get(BOOKS.ID)!!,
+			title = bookRecord.get(BOOKS.TITLE)!!,
+			price = bookRecord.get(BOOKS.PRICE)!!,
+			publicationStatus = PublicationStatus.valueOf(bookRecord.get(BOOKS.PUBLICATION_STATUS)!!),
+			authors = authors,
+		)
+	}
+
+	private fun findAuthorsByBookId(bookId: Long): List<Author> =
+		dsl
+			.select(AUTHORS.ID, AUTHORS.NAME, AUTHORS.BIRTH_DATE)
+			.from(AUTHORS)
+			.join(BOOK_AUTHORS)
+			.on(BOOK_AUTHORS.AUTHOR_ID.eq(AUTHORS.ID))
+			.where(BOOK_AUTHORS.BOOK_ID.eq(bookId))
+			.orderBy(AUTHORS.ID)
+			.fetch { record ->
+				Author(
+					id = record.get(AUTHORS.ID)!!,
+					name = record.get(AUTHORS.NAME)!!,
+					birthDate = record.get(AUTHORS.BIRTH_DATE)!!,
+				)
+			}
 }

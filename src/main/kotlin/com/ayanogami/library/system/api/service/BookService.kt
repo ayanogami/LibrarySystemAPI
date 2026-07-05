@@ -2,6 +2,7 @@ package com.ayanogami.library.system.api.service
 
 import com.ayanogami.library.system.api.exception.AuthorIdsRequiredException
 import com.ayanogami.library.system.api.exception.BookAuthorNotFoundException
+import com.ayanogami.library.system.api.exception.BookNotFoundException
 import com.ayanogami.library.system.api.exception.InvalidBookException
 import com.ayanogami.library.system.api.model.Book
 import com.ayanogami.library.system.api.model.PublicationStatus
@@ -36,6 +37,33 @@ class BookService(
 		return bookRepository.create(title, price, publicationStatus, authors)
 	}
 
+	@Transactional
+	fun update(
+		id: Long,
+		title: String,
+		price: Int,
+		authorIds: List<Long>,
+		publicationStatus: PublicationStatus,
+	): Book {
+		validateTitle(title)
+		validatePrice(price)
+		validateAuthorIds(authorIds)
+
+		val currentBook = bookRepository.findById(id)
+			?: throw BookNotFoundException(id)
+
+		if (currentBook.publicationStatus == PublicationStatus.PUBLISHED &&
+			publicationStatus == PublicationStatus.UNPUBLISHED
+		) {
+			throw InvalidBookException("published book cannot be unpublished")
+		}
+
+		val authors = findAuthors(authorIds)
+
+		return bookRepository.update(id, title, price, publicationStatus, authors)
+			?: throw BookNotFoundException(id)
+	}
+
 	private fun validateTitle(title: String) {
 		if (title.isBlank()) {
 			throw InvalidBookException("title is required")
@@ -53,4 +81,17 @@ class BookService(
 			throw AuthorIdsRequiredException()
 		}
 	}
+
+	private fun findAuthors(authorIds: List<Long>) =
+		authorIds.distinct().let { distinctAuthorIds ->
+			val authors = bookRepository.findAuthorsByIds(distinctAuthorIds)
+			val foundAuthorIds = authors.map { it.id }.toSet()
+			val missingAuthorIds = distinctAuthorIds.filterNot(foundAuthorIds::contains)
+
+			if (missingAuthorIds.isNotEmpty()) {
+				throw BookAuthorNotFoundException(missingAuthorIds)
+			}
+
+			authors
+		}
 }
