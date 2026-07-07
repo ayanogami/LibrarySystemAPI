@@ -144,11 +144,14 @@ class AuthorApiSpec : DescribeSpec({
 							}
 							""".trimIndent(),
 						),
-				)
-					.andExpect(status().isBadRequest)
+					)
+						.andExpect(status().isBadRequest)
+						.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+						.andExpect(jsonPath("$.message").value("validation failed"))
+						.andExpect(jsonPath("$.details[0].field").value("name"))
 
-				dsl.fetchCount(AUTHORS) shouldBe 0
-			}
+					dsl.fetchCount(AUTHORS) shouldBe 0
+				}
 		}
 
 		context("著者名が未指定の場合") {
@@ -372,11 +375,14 @@ class AuthorApiSpec : DescribeSpec({
 							}
 							""".trimIndent(),
 						),
-				)
-					.andExpect(status().isNotFound)
+					)
+						.andExpect(status().isNotFound)
+						.andExpect(jsonPath("$.code").value("NOT_FOUND"))
+						.andExpect(jsonPath("$.message").value("author not found: 999"))
+						.andExpect(jsonPath("$.details.length()").value(0))
 
-				dsl.fetchCount(AUTHORS) shouldBe 0
-			}
+					dsl.fetchCount(AUTHORS) shouldBe 0
+				}
 		}
 
 		context("著者名が空白の場合") {
