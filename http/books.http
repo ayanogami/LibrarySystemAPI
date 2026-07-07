@@ -1,5 +1,12 @@
 @baseUrl = http://localhost:8080
 @bookId = 3
+@authorId = 56
+
+### Get books by author
+GET {{baseUrl}}/books?authorId={{authorId}}
+
+### Get books by author fails when author does not exist
+GET {{baseUrl}}/books?authorId=999999
 
 ### Create book
 POST {{baseUrl}}/books
