@@ -10,6 +10,12 @@ Content-Type: application/json
   "birthDate": "1821-01-01"
 }
 
+### Get books by author
+GET {{baseUrl}}/authors/{{authorId}}/books
+
+### Get books by author fails when author does not exist
+GET {{baseUrl}}/authors/999999/books
+
 ### Create author fails when name is blank
 POST {{baseUrl}}/authors
 Content-Type: application/json

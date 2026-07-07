@@ -3,6 +3,9 @@ package com.ayanogami.library.system.api
 import com.ayanogami.library.system.api.exception.AuthorNotFoundException
 import com.ayanogami.library.system.api.exception.InvalidAuthorException
 import com.ayanogami.library.system.api.model.Author
+import com.ayanogami.library.system.api.model.AuthorBooks
+import com.ayanogami.library.system.api.model.Book
+import com.ayanogami.library.system.api.model.PublicationStatus
 import com.ayanogami.library.system.api.repository.AuthorRepository
 import com.ayanogami.library.system.api.service.AuthorService
 import io.kotest.assertions.throwables.shouldThrow
@@ -82,12 +85,86 @@ class AuthorServiceSpec : DescribeSpec({
 				exception.message shouldBe "birthDate must be today or earlier"
 				verify(exactly = 0) { repository.create(any(), any()) }
 			}
+			}
 		}
-	}
 
-	describe("著者更新") {
-		context("著者名のみ指定された場合") {
-			it("著者名だけを更新する") {
+		describe("著者別書籍一覧取得") {
+			context("著者に書籍が紐づく場合") {
+				it("著者情報と書籍一覧を返す") {
+					val repository = mockk<AuthorRepository>()
+					val service = AuthorService(repository)
+					val author = Author(
+						id = 1,
+						name = "夏目漱石",
+						birthDate = LocalDate.of(1867, 2, 9),
+					)
+					val books = listOf(
+						Book(
+							id = 1,
+							title = "吾輩は猫である",
+							price = 1200,
+							publicationStatus = PublicationStatus.PUBLISHED,
+							authors = listOf(author),
+						),
+						Book(
+							id = 2,
+							title = "坊っちゃん",
+							price = 900,
+							publicationStatus = PublicationStatus.UNPUBLISHED,
+							authors = listOf(author),
+						),
+					)
+					every { repository.findById(1) } returns author
+					every { repository.findBooksByAuthorId(1) } returns books
+
+					val authorBooks = service.findBooks(1)
+
+					authorBooks shouldBe AuthorBooks(author, books)
+					verify(exactly = 1) { repository.findById(1) }
+					verify(exactly = 1) { repository.findBooksByAuthorId(1) }
+				}
+			}
+
+			context("著者に紐づく書籍がない場合") {
+				it("空の書籍一覧を返す") {
+					val repository = mockk<AuthorRepository>()
+					val service = AuthorService(repository)
+					val author = Author(
+						id = 1,
+						name = "夏目漱石",
+						birthDate = LocalDate.of(1867, 2, 9),
+					)
+					every { repository.findById(1) } returns author
+					every { repository.findBooksByAuthorId(1) } returns emptyList()
+
+					val authorBooks = service.findBooks(1)
+
+					authorBooks shouldBe AuthorBooks(author, emptyList())
+					verify(exactly = 1) { repository.findById(1) }
+					verify(exactly = 1) { repository.findBooksByAuthorId(1) }
+				}
+			}
+
+			context("著者IDが存在しない場合") {
+				it("AuthorNotFoundException を投げる") {
+					val repository = mockk<AuthorRepository>()
+					val service = AuthorService(repository)
+					every { repository.findById(999) } returns null
+
+					val exception = shouldThrow<AuthorNotFoundException> {
+						service.findBooks(999)
+					}
+
+					exception.message shouldBe "author not found: 999"
+					verify(exactly = 1) { repository.findById(999) }
+					verify(exactly = 0) { repository.findBooksByAuthorId(any()) }
+				}
+			}
+		}
+
+		describe("著者更新") {
+			context("著者名のみ指定された場合") {
+				it("著者名だけを更新する") {
 				val repository = mockk<AuthorRepository>()
 				val service = AuthorService(repository)
 				val birthDate = LocalDate.of(1867, 2, 9)

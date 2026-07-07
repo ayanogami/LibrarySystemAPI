@@ -3,6 +3,7 @@ package com.ayanogami.library.system.api.service
 import com.ayanogami.library.system.api.exception.AuthorNotFoundException
 import com.ayanogami.library.system.api.exception.InvalidAuthorException
 import com.ayanogami.library.system.api.model.Author
+import com.ayanogami.library.system.api.model.AuthorBooks
 import com.ayanogami.library.system.api.repository.AuthorRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -33,6 +34,16 @@ class AuthorService(
 
 		return authorRepository.update(id, updatedName, updatedBirthDate)
 			?: throw AuthorNotFoundException(id)
+	}
+
+	fun findBooks(id: Long): AuthorBooks {
+		val author = authorRepository.findById(id)
+			?: throw AuthorNotFoundException(id)
+
+		return AuthorBooks(
+			author = author,
+			books = authorRepository.findBooksByAuthorId(id),
+		)
 	}
 
 	private fun validateName(name: String) {

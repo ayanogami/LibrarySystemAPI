@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -48,12 +49,38 @@ class AuthorApiSpec : DescribeSpec({
 		.set(AUTHORS.BIRTH_DATE, birthDate)
 		.returning(AUTHORS.ID)
 		.fetchOne()
-		?.get(AUTHORS.ID)
-		?: error("Failed to create author for test")
+			?.get(AUTHORS.ID)
+			?: error("Failed to create author for test")
 
-	describe("POST /authors") {
-		context("リクエストが妥当な場合") {
-			it("著者を作成する") {
+		fun createBook(
+			title: String = "吾輩は猫である",
+			price: Int = 1200,
+			publicationStatus: String = "UNPUBLISHED",
+			authorIds: List<Long>,
+		): Long {
+			val bookId = dsl
+				.insertInto(BOOKS)
+				.set(BOOKS.TITLE, title)
+				.set(BOOKS.PRICE, price)
+				.set(BOOKS.PUBLICATION_STATUS, publicationStatus)
+				.returning(BOOKS.ID)
+				.fetchOne()
+				?.get(BOOKS.ID)
+				?: error("Failed to create book for test")
+
+			authorIds.forEach { authorId ->
+				dsl.insertInto(BOOK_AUTHORS)
+					.set(BOOK_AUTHORS.BOOK_ID, bookId)
+					.set(BOOK_AUTHORS.AUTHOR_ID, authorId)
+					.execute()
+			}
+
+			return bookId
+		}
+
+		describe("POST /authors") {
+			context("リクエストが妥当な場合") {
+				it("著者を作成する") {
 				mockMvc.perform(
 					post("/authors")
 						.contentType(MediaType.APPLICATION_JSON)
@@ -180,12 +207,77 @@ class AuthorApiSpec : DescribeSpec({
 
 				dsl.fetchCount(AUTHORS) shouldBe 0
 			}
+			}
 		}
-	}
 
-	describe("PATCH /authors/{authorId}") {
-		context("著者名のみ指定された場合") {
-			it("著者名だけを更新する") {
+		describe("GET /authors/{authorId}/books") {
+			context("著者に書籍が紐づく場合") {
+				it("著者情報と書籍一覧を返す") {
+					val authorId = createAuthor()
+					val otherAuthorId = createAuthor(
+						name = "森鴎外",
+						birthDate = LocalDate.of(1862, 2, 17),
+					)
+					val firstBookId = createBook(
+						title = "吾輩は猫である",
+						price = 1200,
+						publicationStatus = "PUBLISHED",
+						authorIds = listOf(authorId),
+					)
+					val secondBookId = createBook(
+						title = "坊っちゃん",
+						price = 900,
+						publicationStatus = "UNPUBLISHED",
+						authorIds = listOf(authorId, otherAuthorId),
+					)
+					createBook(
+						title = "舞姫",
+						price = 1000,
+						publicationStatus = "PUBLISHED",
+						authorIds = listOf(otherAuthorId),
+					)
+
+					mockMvc.perform(get("/authors/$authorId/books"))
+						.andExpect(status().isOk)
+						.andExpect(jsonPath("$.id").value(authorId))
+						.andExpect(jsonPath("$.name").value("夏目漱石"))
+						.andExpect(jsonPath("$.birthDate").value("1867-02-09"))
+						.andExpect(jsonPath("$.books.length()").value(2))
+						.andExpect(jsonPath("$.books[0].id").value(firstBookId))
+						.andExpect(jsonPath("$.books[0].title").value("吾輩は猫である"))
+						.andExpect(jsonPath("$.books[0].price").value(1200))
+						.andExpect(jsonPath("$.books[0].publicationStatus").value("PUBLISHED"))
+						.andExpect(jsonPath("$.books[1].id").value(secondBookId))
+						.andExpect(jsonPath("$.books[1].title").value("坊っちゃん"))
+						.andExpect(jsonPath("$.books[1].price").value(900))
+						.andExpect(jsonPath("$.books[1].publicationStatus").value("UNPUBLISHED"))
+				}
+			}
+
+			context("著者に紐づく書籍がない場合") {
+				it("空の書籍一覧を返す") {
+					val authorId = createAuthor()
+
+					mockMvc.perform(get("/authors/$authorId/books"))
+						.andExpect(status().isOk)
+						.andExpect(jsonPath("$.id").value(authorId))
+						.andExpect(jsonPath("$.name").value("夏目漱石"))
+						.andExpect(jsonPath("$.birthDate").value("1867-02-09"))
+						.andExpect(jsonPath("$.books.length()").value(0))
+				}
+			}
+
+			context("著者IDが存在しない場合") {
+				it("404 Not Found を返す") {
+					mockMvc.perform(get("/authors/999999/books"))
+						.andExpect(status().isNotFound)
+				}
+			}
+		}
+
+		describe("PATCH /authors/{authorId}") {
+			context("著者名のみ指定された場合") {
+				it("著者名だけを更新する") {
 				val authorId = createAuthor()
 
 				mockMvc.perform(
