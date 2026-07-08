@@ -1,0 +1,407 @@
+openapi: 3.0.3
+info:
+  title: LibrarySystemAPI
+  version: 0.0.1
+  description: 書籍管理システムのバックエンドAPI
+servers:
+  - url: http://localhost:8080
+    description: Local
+tags:
+  - name: Authors
+  - name: Books
+paths:
+  /authors:
+    post:
+      tags:
+        - Authors
+      summary: 著者を作成する
+      operationId: createAuthor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuthorRequest'
+            examples:
+              default:
+                value:
+                  name: 夏目漱石
+                  birthDate: '1867-02-09'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /authors/{authorId}:
+    patch:
+      tags:
+        - Authors
+      summary: 著者を更新する
+      operationId: updateAuthor
+      parameters:
+        - $ref: '#/components/parameters/AuthorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAuthorRequest'
+            examples:
+              name:
+                value:
+                  name: 夏目 金之助
+              birthDate:
+                value:
+                  birthDate: '1867-02-10'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /books:
+    get:
+      tags:
+        - Books
+      summary: 著者に紐づく書籍一覧を取得する
+      operationId: findBooksByAuthor
+      parameters:
+        - $ref: '#/components/parameters/AuthorIdQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorBooksResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - Books
+      summary: 書籍を作成する
+      operationId: createBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookRequest'
+            examples:
+              default:
+                value:
+                  title: 吾輩は猫である
+                  price: 1200
+                  authorIds:
+                    - 1
+                  publicationStatus: PUBLISHED
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /books/{bookId}:
+    patch:
+      tags:
+        - Books
+      summary: 書籍を更新する
+      operationId: updateBook
+      parameters:
+        - $ref: '#/components/parameters/BookId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBookRequest'
+            examples:
+              title:
+                value:
+                  title: 坊っちゃん
+              priceAndAuthors:
+                value:
+                  price: 1500
+                  authorIds:
+                    - 1
+                    - 2
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    AuthorId:
+      name: authorId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1
+    AuthorIdQuery:
+      name: authorId
+      in: query
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1
+    BookId:
+      name: bookId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    PublicationStatus:
+      type: string
+      enum:
+        - UNPUBLISHED
+        - PUBLISHED
+    CreateAuthorRequest:
+      type: object
+      required:
+        - name
+        - birthDate
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: 夏目漱石
+        birthDate:
+          type: string
+          format: date
+          example: '1867-02-09'
+    UpdateAuthorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 夏目 金之助
+        birthDate:
+          type: string
+          format: date
+          example: '1867-02-10'
+      description: nameまたはbirthDateの少なくとも一方を指定します。
+    AuthorResponse:
+      type: object
+      required:
+        - id
+        - name
+        - birthDate
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: 夏目漱石
+        birthDate:
+          type: string
+          format: date
+          example: '1867-02-09'
+    CreateBookRequest:
+      type: object
+      required:
+        - title
+        - price
+        - authorIds
+        - publicationStatus
+      properties:
+        title:
+          type: string
+          minLength: 1
+          example: 吾輩は猫である
+        price:
+          type: integer
+          minimum: 0
+          example: 1200
+        authorIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+          example:
+            - 1
+        publicationStatus:
+          $ref: '#/components/schemas/PublicationStatus'
+    UpdateBookRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: 坊っちゃん
+        price:
+          type: integer
+          minimum: 0
+          example: 1500
+        authorIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+          example:
+            - 1
+            - 2
+        publicationStatus:
+          $ref: '#/components/schemas/PublicationStatus'
+      description: title、price、authorIds、publicationStatusの少なくとも一つを指定します。PUBLISHEDからUNPUBLISHEDには戻せません。
+    BookAuthorResponse:
+      type: object
+      required:
+        - id
+        - name
+        - birthDate
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: 夏目漱石
+        birthDate:
+          type: string
+          format: date
+          example: '1867-02-09'
+    BookResponse:
+      type: object
+      required:
+        - id
+        - title
+        - price
+        - publicationStatus
+        - authors
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        title:
+          type: string
+          example: 吾輩は猫である
+        price:
+          type: integer
+          example: 1200
+        publicationStatus:
+          $ref: '#/components/schemas/PublicationStatus'
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookAuthorResponse'
+    AuthorBookResponse:
+      type: object
+      required:
+        - id
+        - title
+        - price
+        - publicationStatus
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        title:
+          type: string
+          example: 吾輩は猫である
+        price:
+          type: integer
+          example: 1200
+        publicationStatus:
+          $ref: '#/components/schemas/PublicationStatus'
+    AuthorBooksResponse:
+      type: object
+      required:
+        - id
+        - name
+        - birthDate
+        - books
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: 夏目漱石
+        birthDate:
+          type: string
+          format: date
+          example: '1867-02-09'
+        books:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorBookResponse'
+    ErrorDetailResponse:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          example: name
+        message:
+          type: string
+          example: must not be blank
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - details
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - BAD_REQUEST
+            - NOT_FOUND
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: validation failed
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetailResponse'
