@@ -144,11 +144,14 @@ class AuthorApiSpec : DescribeSpec({
 							}
 							""".trimIndent(),
 						),
-				)
-					.andExpect(status().isBadRequest)
+					)
+						.andExpect(status().isBadRequest)
+						.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+						.andExpect(jsonPath("$.message").value("validation failed"))
+						.andExpect(jsonPath("$.details[0].field").value("name"))
 
-				dsl.fetchCount(AUTHORS) shouldBe 0
-			}
+					dsl.fetchCount(AUTHORS) shouldBe 0
+				}
 		}
 
 		context("著者名が未指定の場合") {
@@ -189,9 +192,9 @@ class AuthorApiSpec : DescribeSpec({
 			}
 		}
 
-		context("生年月日が現在日より後の場合") {
-			it("400 Bad Request を返す") {
-				mockMvc.perform(
+			context("生年月日が現在日より後の場合") {
+				it("400 Bad Request を返す") {
+					mockMvc.perform(
 					post("/authors")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(
@@ -205,12 +208,34 @@ class AuthorApiSpec : DescribeSpec({
 				)
 					.andExpect(status().isBadRequest)
 
-				dsl.fetchCount(AUTHORS) shouldBe 0
+					dsl.fetchCount(AUTHORS) shouldBe 0
+				}
+				}
 			}
-			}
-		}
 
-		describe("GET /books?authorId={authorId}") {
+			context("リクエストボディがJSONとして不正な場合") {
+				it("400 Bad Request を返す") {
+					mockMvc.perform(
+						post("/authors")
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(
+								"""
+								{
+								  "name": "夏目漱石",
+								  "birthDate": "1867-02-09"
+								""".trimIndent(),
+							),
+					)
+						.andExpect(status().isBadRequest)
+						.andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+						.andExpect(jsonPath("$.message").value("request body is invalid"))
+						.andExpect(jsonPath("$.details.length()").value(0))
+
+					dsl.fetchCount(AUTHORS) shouldBe 0
+				}
+			}
+
+			describe("GET /books?authorId={authorId}") {
 			context("著者に書籍が紐づく場合") {
 				it("著者情報と書籍一覧を返す") {
 					val authorId = createAuthor()
@@ -271,6 +296,16 @@ class AuthorApiSpec : DescribeSpec({
 				it("404 Not Found を返す") {
 					mockMvc.perform(get("/books").param("authorId", "999999"))
 						.andExpect(status().isNotFound)
+				}
+			}
+
+			context("著者IDが未指定の場合") {
+				it("400 Bad Request を返す") {
+					mockMvc.perform(get("/books"))
+						.andExpect(status().isBadRequest)
+						.andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+						.andExpect(jsonPath("$.message").value("authorId is required"))
+						.andExpect(jsonPath("$.details.length()").value(0))
 				}
 			}
 		}
@@ -372,11 +407,14 @@ class AuthorApiSpec : DescribeSpec({
 							}
 							""".trimIndent(),
 						),
-				)
-					.andExpect(status().isNotFound)
+					)
+						.andExpect(status().isNotFound)
+						.andExpect(jsonPath("$.code").value("NOT_FOUND"))
+						.andExpect(jsonPath("$.message").value("author not found: 999"))
+						.andExpect(jsonPath("$.details.length()").value(0))
 
-				dsl.fetchCount(AUTHORS) shouldBe 0
-			}
+					dsl.fetchCount(AUTHORS) shouldBe 0
+				}
 		}
 
 		context("著者名が空白の場合") {

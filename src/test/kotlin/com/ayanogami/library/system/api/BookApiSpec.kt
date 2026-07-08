@@ -162,11 +162,14 @@ class BookApiSpec : DescribeSpec({
 							}
 							""".trimIndent(),
 						),
-				)
-					.andExpect(status().isBadRequest)
+					)
+						.andExpect(status().isBadRequest)
+						.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+						.andExpect(jsonPath("$.message").value("validation failed"))
+						.andExpect(jsonPath("$.details[0].field").value("price"))
 
-				dsl.fetchCount(BOOKS) shouldBe 0
-				dsl.fetchCount(BOOK_AUTHORS) shouldBe 0
+					dsl.fetchCount(BOOKS) shouldBe 0
+					dsl.fetchCount(BOOK_AUTHORS) shouldBe 0
 			}
 		}
 
@@ -185,11 +188,14 @@ class BookApiSpec : DescribeSpec({
 							}
 							""".trimIndent(),
 						),
-				)
-					.andExpect(status().isBadRequest)
+					)
+						.andExpect(status().isBadRequest)
+						.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+						.andExpect(jsonPath("$.message").value("validation failed"))
+						.andExpect(jsonPath("$.details[0].field").value("authorIds"))
 
-				dsl.fetchCount(BOOKS) shouldBe 0
-				dsl.fetchCount(BOOK_AUTHORS) shouldBe 0
+					dsl.fetchCount(BOOKS) shouldBe 0
+					dsl.fetchCount(BOOK_AUTHORS) shouldBe 0
 			}
 		}
 
@@ -210,10 +216,13 @@ class BookApiSpec : DescribeSpec({
 							}
 							""".trimIndent(),
 						),
-				)
-					.andExpect(status().isBadRequest)
+					)
+						.andExpect(status().isBadRequest)
+						.andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+						.andExpect(jsonPath("$.message").value("author not found: 999999"))
+						.andExpect(jsonPath("$.details.length()").value(0))
 
-				dsl.fetchCount(BOOKS) shouldBe 0
+					dsl.fetchCount(BOOKS) shouldBe 0
 				dsl.fetchCount(BOOK_AUTHORS) shouldBe 0
 			}
 		}
